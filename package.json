@@ -1,0 +1,23 @@
+{
+  "name": "sistema-fichaje",
+  "version": "1.0.0",
+  "description": "Sistema de fichaje automático con QR, geolocalización y almacenamiento en Excel.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "build": "echo 'No se requiere build para este proyecto'",
+    "deploy": "netlify deploy --prod"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "qrcode": "^1.5.3",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "engines": {
+    "node": "18.x"
+  }
+}

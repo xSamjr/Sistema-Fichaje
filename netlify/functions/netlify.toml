@@ -1,0 +1,29 @@
+[build]
+  # Carpeta base del proyecto (dejar vacío si todo está en la raíz)
+  base = ""
+
+  # Carpeta donde Netlify buscará los archivos estáticos (HTML, CSS, JS)
+  publish = "public"
+
+  # Carpeta donde Netlify buscará las funciones Lambda (backend)
+  functions = "netlify/functions"
+
+# Plugin para instalar dependencias de las funciones Lambda
+[[plugins]]
+  package = "@netlify/plugin-functions-install-core"
+
+# Configuración del entorno de construcción
+[build.environment]
+  # Establecer el entorno de Node.js en producción
+  NODE_ENV = "production"
+
+  # Versión de Node.js a utilizar (recomendado usar una LTS)
+  NODE_VERSION = "18"
+
+# Configuración adicional para las funciones Lambda
+[functions]
+  # Tamaño máximo de la memoria para las funciones Lambda (en MB)
+  memory = 1024
+
+  # Tiempo máximo de ejecución para las funciones Lambda (en segundos)
+  timeout = 10

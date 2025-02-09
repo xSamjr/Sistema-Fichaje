@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fichaje Automático</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        #map { height: 400px; width: 100%; margin-top: 20px; display: none; }
+        #status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .loading { background: #e3f2fd; color: #0d47a1; }
+        .error { background: #ffebee; color: #b71c1c; }
+        .success { background: #e8f5e9; color: #2e7d32; }
+    </style>
+    <script>
+        let map, marker;
+        const statusElement = document.createElement('div');
+        
+        function initMap() {
+            statusElement.id = "status";
+            document.body.appendChild(statusElement);
+            updateStatus("Cargando Google Maps...", "loading");
+
+            // Verificar si Google Maps está cargado
+            if (!window.google?.maps) {
+                updateStatus("Error: Google Maps no se cargó. Recarga la página.", "error");
+                return;
+            }
+
+            // Configurar el mapa
+            map = new google.maps.Map(document.getElementById("map"), { zoom: 15 });
+            marker = new google.maps.Marker({ map: map, title: "Tu ubicación" });
+            
+            // Obtener ubicación
+            obtenerUbicacion();
+        }
+
+        function obtenerUbicacion() {
+            updateStatus("Solicitando permisos de ubicación...", "loading");
+            
+            if (!navigator.geolocation) {
+                updateStatus("Error: Geolocalización no compatible.", "error");
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                position => {
+                    document.getElementById("map").style.display = "block";
+                    registrarUbicacion(position);
+                },
+                error => {
+                    let mensaje;
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            mensaje = "Debes permitir la ubicación para continuar.";
+                            break;
+                        case error.TIMEOUT:
+                            mensaje = "Tiempo de espera agotado. Intenta de nuevo.";
+                            break;
+                        default:
+                            mensaje = "Error al obtener la ubicación.";
+                    }
+                    updateStatus(mensaje, "error");
+                },
+                { enableHighAccuracy: true, timeout: 10000 }
+            );
+        }
+
+        function registrarUbicacion(position) {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+
+            // Actualizar mapa
+            map.setCenter({ lat, lng: lon });
+            marker.setPosition({ lat, lng: lon });
+
+            // Enviar datos al servidor
+            updateStatus("Registrando fichaje...", "loading");
+            
+            const datosFichaje = {
+                nombre: "Samuel Chas",
+                fecha: new Date().toLocaleDateString(),
+                hora: new Date().toLocaleTimeString(),
+                ubicacion: "Obra XYZ",
+                latitud: lat,
+                longitud: lon,
+                linkMapa: `https://www.google.com/maps?q=${lat},${lon}`
+            };
+
+            fetch('/.netlify/functions/registrarFichaje', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(datosFichaje)
+            })
+            .then(response => {
+                if (!response.ok) throw new Error("Error HTTP: " + response.status);
+                return response.json();
+            })
+            .then(data => {
+                updateStatus("✅ Fichaje registrado correctamente", "success");
+                setTimeout(() => statusElement.style.display = "none", 3000);
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                updateStatus("❌ Error al registrar el fichaje. Verifica la consola.", "error");
+            });
+        }
+
+        function updateStatus(mensaje, tipo) {
+            statusElement.textContent = mensaje;
+            statusElement.className = tipo;
+        }
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBVS1DKpMM-OopABGBxcnR-uu6s_MGRDrU&callback=initMap" async defer></script>
+</head>
+<body>
+    <h1>Fichaje Automático</h1>
+    <div id="map"></div>
+</body>
+</html>
